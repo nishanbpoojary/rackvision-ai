@@ -1,0 +1,104 @@
+# ==============================================================================
+# RackVision AI – .gitignore
+# Python / FastAPI / YOLO / OpenCV
+# ==============================================================================
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+*.whl
+*.so
+.python-version
+
+# ── Virtual Environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+venv.bak/
+
+# ── Environment Variables & Secrets ──────────────────────────────────────────
+.env
+.env.*
+*.env
+secrets.yaml
+secrets.json
+
+# ── YOLO / ML Model Weights ───────────────────────────────────────────────────
+# Model weights are large binary files – store via Git LFS or separately
+models/*.pt
+models/*.onnx
+models/*.engine
+models/*.tflite
+models/*.pb
+models/*.pth
+models/*.h5
+runs/
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+dataset/
+*.cache
+
+# ── Input / Output Imagery ───────────────────────────────────────────────────
+output/
+input/*.jpg
+input/*.jpeg
+input/*.png
+input/*.bmp
+input/*.mp4
+input/*.avi
+input/*.mov
+
+# ── IDE & Editors ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ── OS Files ──────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints
+*.ipynb
+
+# ── Miscellaneous ─────────────────────────────────────────────────────────────
+*.tmp
+*.bak
+*.orig
+*.rej
+.cache/
+.mypy_cache/
+.ruff_cache/
