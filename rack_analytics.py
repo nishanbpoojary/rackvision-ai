@@ -358,6 +358,7 @@ def analyze_rack_fleet(
 ) -> Dict:
     """
     Performs warehouse rack occupancy and status analysis strictly bounded to the physical rack.
+    Guarantees that each detected gap is assigned uniquely to its corresponding rack tier/bay.
     """
     start_time = time.perf_counter()
 
@@ -369,6 +370,55 @@ def analyze_rack_fleet(
         default_bays=num_bays,
     )
 
+    # 1. Assign each detected gap box uniquely to its primary rack
+    rack_assigned_gaps: Dict[str, List[Dict]] = {r.rack_id: [] for r in regions}
+    
+    for item in gap_boxes:
+        box = item.get("box", item.get("bbox", None))
+        if not box:
+            continue
+        gx1, gy1, gx2, gy2 = map(int, box)
+        gcx = (gx1 + gx2) / 2.0
+        gcy = (gy1 + gy2) / 2.0
+
+        best_rack_id = None
+        best_score = -1.0
+
+        for r in regions:
+            rx1, ry1, rx2, ry2 = r.bbox
+            ix1 = max(rx1, gx1)
+            iy1 = max(ry1, gy1)
+            ix2 = min(rx2, gx2)
+            iy2 = min(ry2, gy2)
+
+            inter_w = max(0, ix2 - ix1)
+            inter_h = max(0, iy2 - iy1)
+            inter_area = inter_w * inter_h
+
+            is_center_inside = (rx1 <= gcx <= rx2 and ry1 <= gcy <= ry2)
+            # Prioritize rack containing the gap center, else maximum overlap area
+            score = inter_area + (1e7 if is_center_inside else 0.0)
+
+            if score > best_score and (inter_area > 0 or is_center_inside):
+                best_score = score
+                best_rack_id = r.rack_id
+
+        # Fallback: if gap is outside all rack boundaries, assign to nearest rack
+        if not best_rack_id and regions:
+            min_dist = float("inf")
+            for r in regions:
+                rx1, ry1, rx2, ry2 = r.bbox
+                rcx = (rx1 + rx2) / 2.0
+                rcy = (ry1 + ry2) / 2.0
+                dist = (gcx - rcx) ** 2 + (gcy - rcy) ** 2
+                if dist < min_dist:
+                    min_dist = dist
+                    best_rack_id = r.rack_id
+
+        if best_rack_id:
+            rack_assigned_gaps[best_rack_id].append(item)
+
+    # 2. Compute individual rack analytics & pixel occupancy
     rack_results: List[RackAnalysisResult] = []
     total_warehouse_area = 0
     total_warehouse_gap_area = 0
@@ -385,12 +435,15 @@ def analyze_rack_fleet(
         rack_area = max(1, (rx2 - rx1) * (ry2 - ry1))
         total_warehouse_area += rack_area
 
-        gap_area, gap_cnt = compute_gap_union_area_in_region(region.bbox, gap_boxes, image_shape)
+        gap_area, _ = compute_gap_union_area_in_region(region.bbox, gap_boxes, image_shape)
         total_warehouse_gap_area += gap_area
 
         occupied_area = max(0, rack_area - gap_area)
         occupancy_pct = round((occupied_area / rack_area) * 100.0, 1)
         vacancy_pct = round((gap_area / rack_area) * 100.0, 1)
+
+        # Exact unique count of gaps situated in this rack
+        gap_cnt = len(rack_assigned_gaps.get(region.rack_id, []))
 
         status, urgency, action, units = classify_rack_status(occupancy_pct)
 
@@ -463,6 +516,7 @@ def analyze_rack_fleet(
             "total_racks": len(rack_results),
             "detected_shelf_tiers": rack_meta["detected_tiers"],
             "detected_bay_count": rack_meta["detected_bays"],
+            "total_detected_gaps": len(gap_boxes),
             "fleet_occupancy_pct": fleet_occupancy_pct,
             "fleet_vacancy_pct": fleet_vacancy_pct,
             "stocked_racks": stocked_count,

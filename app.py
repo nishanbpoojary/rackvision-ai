@@ -51,14 +51,14 @@ DEFAULT_IOU = 0.35
 MAX_DETECTIONS = 150
 
 # App-level sanity filters.
-# These remove tiny noise boxes and very large "empty area" boxes.
-MIN_BOX_AREA_RATIO = 0.0003
-MAX_BOX_AREA_RATIO = 0.35
+# These remove tiny noise boxes and allow genuine large shelf gaps.
+MIN_BOX_AREA_RATIO = 0.0001
+MAX_BOX_AREA_RATIO = 0.90
 
 # App-level overlap suppression.
-# If two boxes strongly overlap, keep only the better/tighter one.
-OVERLAP_IOU_THRESHOLD = 0.30
-CONTAINMENT_THRESHOLD = 0.70
+# Prevents duplicate bounding box predictions while preserving adjacent gaps.
+OVERLAP_IOU_THRESHOLD = 0.50
+CONTAINMENT_THRESHOLD = 0.85
 
 # If a smaller contained box has at least this fraction of the larger box score,
 # prefer the smaller/tighter box.

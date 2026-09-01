@@ -946,7 +946,7 @@
           <div class="mini-progress-fill" id="kpiOccupancyFill"></div>
         </div>
         <div class="kpi-sub">
-          <span>Gap / Vacancy: <strong id="kpiVacancy">--%</strong></span>
+          <span>Gap Area: <strong id="kpiVacancy">--%</strong> &bull; Total Gaps: <strong id="kpiTotalGaps" style="color: var(--accent-cyan);">--</strong></span>
         </div>
       </div>
 
@@ -1703,6 +1703,9 @@
       document.getElementById('kpiOccupancy').textContent = summary.fleet_occupancy_pct;
       document.getElementById('kpiOccupancyFill').style.width = `${summary.fleet_occupancy_pct}%`;
       document.getElementById('kpiVacancy').textContent = `${summary.fleet_vacancy_pct}%`;
+      const totalGaps = summary.total_detected_gaps !== undefined ? summary.total_detected_gaps : (data.gaps ? data.gaps.length : 0);
+      const kpiGapsEl = document.getElementById('kpiTotalGaps');
+      if (kpiGapsEl) kpiGapsEl.textContent = totalGaps;
       document.getElementById('kpiTotalRacks').textContent = summary.total_racks;
       document.getElementById('kpiStockedCount').textContent = summary.stocked_racks;
       document.getElementById('kpiPartialCount').textContent = summary.partial_racks;
